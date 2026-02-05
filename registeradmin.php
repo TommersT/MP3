@@ -1,145 +1,69 @@
 <?php
-
 include_once("config.php");
 
-// Check if the form was submitted
 if (isset($_POST["submit"])) {
-    // Retrieve the form data
-    $username = $_POST["username"];
+    $username = mysqli_real_escape_string($conn, $_POST["username"]);
+    $firstname = mysqli_real_escape_string($conn, $_POST["firstname"]);
+    $lastname = mysqli_real_escape_string($conn, $_POST["lastname"]);
+    $password = mysqli_real_escape_string($conn, $_POST["password"]);
+    $email = mysqli_real_escape_string($conn, $_POST["email"]);
     $is_admin = 1;
-    $firstname = $_POST["firstname"];
-    $lastname = $_POST["lastname"];
-    $username = $_POST["username"];
-    $password = $_POST["password"];
-    $email = $_POST["email"];
 
-
-    // Insert the user into the database
-    $sql = "INSERT INTO users (username, is_admin, first_name, last_name, password, email) VALUES ('$username', '$is_admin','$firstname','$lastname','$password', '$email')";
-    if (mysqli_query($conn, $sql)) {
-
-   echo "<b>Registration successful!<b>";
-   header('Refresh: 1; URL = login.php');
-
+    // Strict Policy: Check for duplicates
+    $duplicate_check = mysqli_query($conn, "SELECT * FROM users WHERE username='$username' OR email='$email'");
+    if(mysqli_num_rows($duplicate_check) > 0) {
+        $msg = "Error: Admin Username or Email already exists!";
+        $is_error = true;
     } else {
-        echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+        $sql = "INSERT INTO users (username, is_admin, first_name, last_name, password, email) 
+                VALUES ('$username', '$is_admin', '$firstname', '$lastname', '$password', '$email')";
+        
+        if (mysqli_query($conn, $sql)) {
+            $msg = "Admin Registration successful!";
+            $is_error = false;
+            header('Refresh: 2; URL = login.php');
+        } else {
+            $msg = "Error: " . mysqli_error($conn);
+            $is_error = true;
+        }
     }
 }
-
-// Close the database connection
-mysqli_close($conn);
 ?>
-
-<html lang="en">  
-<head>  
-  <meta charset="utf-8">  
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">  
-  <title> Admin Registration Form  </title>  
-  <style>  
-.error {   
-color: white;  
-    font-family: lato;  
-    background: gainsboro;  
-    display: inline-block;  
-    padding: 2px 10px;  
-}  
-* {  
-    padding: 0;  
-    margin: 0;  
-    box-sizing: border-box;  
-}  
-body {  
-    margin: 50px auto;  
-    text-align: left;  
-    width: 800px;  
-}  
-h1 {  
-    font-family: Arial;  
-  display: block;  
-  font-size: 2rem;  
-  font-weight: bold;  
-  text-align: center;  
-  letter-spacing: 3px;  
-  color: darkblue;  
-    text-transform: uppercase;  
-}  
-label {  
-    width: 150px;  
-    display: inline-block;  
-    text-align: left;  
-    font-size: 1.5rem;  
-    font-family: 'Lato';  
-}  
-input {  
-    border: 1px solid #ccc;  
-    font-size: 1.5rem;  
-    font-weight: 100;  
-    font-family: 'Lato';  
-    padding: 10px;  
-}  
-form {  
-    margin: 25px auto;  
-    padding: 20px;  
-    border: 5px solid #ccc;  
-    width: 500px;  
-    background: #f3e7e9;  
-}  
-div.form-element {  
-    margin: 20px 0;  
-}  
-input[type=submit]::after {    
-  background: #fff;    
-  content: '';    
-  position: absolute;    
-  z-index: -1;    
-}    
-input[type=submit] {    
-  border: 2px solid;    
-  border-radius: 2px;    
-  color: ;    
-  display: block;    
-  font-size: 1em;    
-  font-weight: bold;    
-  margin: 1em auto;    
-  padding: 1em 4em;    
- position: relative;    
-  text-transform: uppercase;    
-}    
-input[type=submit]::before   
-{    
-  background: #fff;    
-  content: '';    
-  position: absolute;    
-  z-index: -1;    
-}    
-input[type=submit]:hover {    
-  color: #1A33FF;    
-}    
-</style>  
-</head>  
-<body>    
-
-
-<form method="post" action="">
-<h1>Admin Registration Form </h1><br><br>
-
-    <label>Username:</label>
-    <input type="text" name="username"><br>
-    <label>Firstname:</label>
-    <input type="text" name="firstname"><br>
-    <label>Lastname:</label>
-    <input type="text" name="lastname"><br>
-    <label>Password:</label>
-    <input type="password" name="password"><br>
-    <label>Email:</label>
-    <input type="email" name="email"><br>
-    <input type="submit" name="submit" value="Submit">
-
-
-
-</form>
-
-</body>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Registration</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #FFE900 0%, #ECC232 50%, #BDBCB8 100%);
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;
+        }
+        .reg-card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        h2 { text-align: center; color: #333; margin-bottom: 25px; border-bottom: 4px solid #ECC232; padding-bottom: 10px; }
+        input { width: 100%; padding: 10px; border: 2px solid #BDBCB8; border-radius: 8px; margin-bottom: 15px; }
+        input[type="submit"] { background: #333; color: white; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; height: 45px; }
+        input[type="submit"]:hover { background: #ECC232; color: #333; }
+        .btn-back {
+            display: block; text-align: center; padding: 10px; background: #BDBCB8; color: #333;
+            text-decoration: none; border-radius: 8px; font-weight: bold; transition: 0.3s; margin-top: 10px;
+        }
+        .btn-back:hover { background: #999; color: white; }
+    </style>
 </head>
-
-
+<body>
+    <div class="reg-card">
+        <h2>Admin Registration</h2>
+        <?php if(isset($msg)) echo "<div style='color:".($is_error ? "red" : "green")."; text-align:center; margin-bottom:15px;'>$msg</div>"; ?>
+        <form method="post">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="text" name="firstname" placeholder="First Name" required>
+            <input type="text" name="lastname" placeholder="Last Name" required>
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <input type="submit" name="submit" value="Register Administrator">
+        </form>
+        <a href="login.php" class="btn-back">Back to Login</a>
+    </div>
+</body>
+</html>
